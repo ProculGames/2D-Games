@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class StoreLogic : MonoBehaviour {
     public GameObject StoreCan;
@@ -8,18 +9,24 @@ public class StoreLogic : MonoBehaviour {
     public GameObject TurretPrefab;
     public GameObject Turret;
     public float MaxDist;
+    public float TurretWoodCost;
+    public float Wood;
+    public Text WoodTxt;
     public bool Creating;
 	// Use this for initialization
 	void Start () {
-	
+        PlayerPrefs.SetFloat("Wood", 13);
 	}
 	
 	// Update is called once per frame
 	void Update () {
+        WoodTxt.text = Wood.ToString();
+        Wood = PlayerPrefs.GetFloat("Wood");
         if (Vector3.Distance(Player.transform.position, Store.transform.position) <= MaxDist)
         {
             if (Input.GetKeyDown(KeyCode.E))
             {
+                Time.timeScale = 0;
                 StoreCan.SetActive(true);
             }
         }
@@ -30,8 +37,10 @@ public class StoreLogic : MonoBehaviour {
 
         if (StoreCan.activeInHierarchy)
         {
+            Time.timeScale = 0;
             if (Input.GetKeyDown(KeyCode.Escape))
             {
+                Time.timeScale = 1;
                 StoreCan.SetActive(false);
             }
         }
@@ -46,14 +55,31 @@ public class StoreLogic : MonoBehaviour {
                 Turret.transform.position = Turret.transform.position;
                 Creating = false;
             }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Time.timeScale = 1;
+                StoreCan.SetActive(true);
+                Destroy(Turret);
+                PlayerPrefs.SetFloat("Wood", PlayerPrefs.GetFloat("Wood") + TurretWoodCost);
+            }
              
         }
 	}
 
     public void CreateTurret()
     {
-        StoreCan.SetActive(false);
-        Creating = true;
-        Turret = Instantiate(TurretPrefab) as GameObject;
+        if (PlayerPrefs.GetFloat("Wood") >= TurretWoodCost)
+        {
+            Time.timeScale = 1;
+            StoreCan.SetActive(false);
+            Creating = true;
+            Turret = Instantiate(TurretPrefab) as GameObject;
+            PlayerPrefs.SetFloat("Wood", PlayerPrefs.GetFloat("Wood") - TurretWoodCost);
+        }
+        else
+        {
+            Debug.Log("Not enough resources.");
+        }
     }
 }
